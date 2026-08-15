@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>glowbeast — tell us the truth</title>
+
+<!-- 링크 미리보기 (인스타 DM / 카톡 / 슬랙 등). og:image 는 반드시 절대 URL.
+     아래 URL 들은 othership 리포지토리 주소로 바꿔주세요. -->
+<meta name="description" content="A few quick questions, about four minutes. Be as blunt as you like, and get free products!">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="glowbeast">
+<meta property="og:url" content="https://glowbeast.github.io/glowbeast-survey/othership/">
+<meta property="og:title" content="glowbeast wants your opinion!!">
+<meta property="og:description" content="Four minutes. Be as blunt as you like, and get free products!">
+<meta property="og:image" content="https://glowbeast.github.io/glowbeast-survey/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="TRUTH OR NOTHING">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="glowbeast wants your opinion!!">
+<meta name="twitter:description" content="Four minutes. Be as blunt as you like, and get free products!">
+<meta name="twitter:image" content="https://glowbeast.github.io/glowbeast-survey/og.png">
+
+<!-- ───────────────────────────────────────────────────────────────
+     응답 수집 엔드포인트.
+     Apps Script를 웹 앱으로 배포한 뒤 받은 /exec URL을 여기 붙여넣으세요.
+     비워두면 폼은 그대로 동작하되 "복사해서 보내기" 모드로 떨어집니다.
+     ※ glowbeast 시트와 섞이지 않도록 othership 전용 /exec 을 새로 만들어 넣으세요.
+     ─────────────────────────────────────────────────────────────── -->
+<script>
+  window.OTHERSHIP_ENDPOINT = "";
+</script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; padding: 0; }
+  img { max-width: 100%; }
+
+  :root {
+    --paper:   #F2EFE9;
+    --panel:   #DBDDDC;
+    --ink:     #101211;
+    --ink-soft:#4B5150;
+    --teal:    #3E9490;
+    --teal-dim:#87B9B4;
+    --marker:  #F3CE63;
+    --field:   #FBFAF7;
+
+    --stroke: 2.5px;
+    --r-card: 30px 34px 30px 32px;
+
+    color-scheme: light dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:   #14100E;
+      --panel:   #23201E;
+      --ink:     #F2EFE9;
+      --ink-soft:#A9A29B;
+      --teal:    #4FA9A3;
+      --teal-dim:#2F5F5D;
+      --marker:  #E8C25A;
+      --field:   #191614;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:   #14100E;
+    --panel:   #23201E;
+    --ink:     #F2EFE9;
+    --ink-soft:#A9A29B;
+    --teal:    #4FA9A3;
+    --teal-dim:#2F5F5D;
+    --marker:  #E8C25A;
+    --field:   #191614;
+  }
+  :root[data-theme="light"] {
+    --paper:   #F2EFE9;
+    --panel:   #DBDDDC;
+    --ink:     #101211;
+    --ink-soft:#4B5150;
+    --teal:    #3E9490;
+    --teal-dim:#87B9B4;
+    --marker:  #F3CE63;
+    --field:   #FBFAF7;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Helvetica, "Segoe UI", system-ui, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 660px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* ---------- intro ---------- */
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--teal);
+  }
+
+  h1 {
+    font-size: clamp(34px, 7vw, 52px);
+    font-weight: 700;
+    letter-spacing: -0.028em;
+    line-height: 1.02;
+    text-wrap: balance;
+    margin-top: 10px;
+  }
+
+  h1 mark {
+    background: linear-gradient(transparent 58%, var(--marker) 58%, var(--marker) 94%, transparent 94%);
+    color: inherit;
+    padding: 0 2px;
+  }
+
+  .lede {
+    margin-top: 14px;
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 46ch;
+  }
+
+  /* ---------- tabbed card ---------- */
+
+  .board { position: relative; }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    position: relative;
+    z-index: 3;
+    margin-bottom: -2px;
+  }
+
+  .tab {
+    position: relative;
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--paper);
+    background: var(--teal-dim);
+    padding: 13px 6px 15px;
+    border-radius: 46% 46% 4px 4px / 90% 90% 4px 4px;
+    transition: background 140ms ease, transform 140ms ease;
+  }
+  .tab:nth-child(1) { transform: rotate(-0.5deg); }
+  .tab:nth-child(3) { transform: rotate(0.5deg); }
+  .tab[aria-selected="true"] { background: var(--teal); }
+  .tab:hover { background: var(--teal); }
+
+  /* highlighter stroke behind each tab */
+  .tab::before {
+    content: "";
+    position: absolute;
+    inset: -7px -7px -4px;
+    border: 5px solid var(--marker);
+    border-radius: 46% 46% 8px 8px / 78% 78% 8px 8px;
+    filter: url(#wobble-a);
+    z-index: -1;
+  }
+  .tab:nth-child(2)::before { filter: url(#wobble-b); }
+  .tab:nth-child(3)::before { filter: url(#wobble-c); }
+
+  .tab:focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: 4px;
+  }
+
+  .card {
+    position: relative;
+    background: var(--panel);
+    border-radius: var(--r-card);
+    padding: 44px 34px 34px;
+  }
+
+  /* wobbly hand-drawn outline, borders only so text stays crisp */
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: var(--stroke) solid var(--ink);
+    border-radius: var(--r-card);
+    filter: url(#wobble-b);
+    pointer-events: none;
+  }
+
+  .panel[hidden] { display: none; }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .step {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- questions ---------- */
+
+  .q { display: flex; flex-direction: column; gap: 10px; }
+
+  .q > label, .q > .qlabel {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+
+  .hint {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: -4px;
+  }
+
+  .opt {
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+
+  input[type="text"], textarea {
+    font: inherit;
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--field);
+    border: 2px solid var(--ink);
+    border-radius: 14px 16px 14px 17px;
+    padding: 12px 14px;
+    width: 100%;
+    resize: none;
+    transition: box-shadow 120ms ease;
+  }
+
+  input[type="text"]::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: 0.75; }
+
+  input[type="text"]:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--marker);
+  }
+
+  textarea { min-height: 92px; overflow: hidden; }
+
+  .oneword {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    max-width: 320px;
+  }
+
+  /* 칩 아래에 붙는 짧은 보조 입력칸 */
+  .follow { margin-top: 2px; }
+
+  .yesno { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .chip {
+    appearance: none;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--ink);
+    background: var(--field);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    padding: 9px 18px;
+    transition: background 120ms ease, color 120ms ease;
+    text-align: left;
+  }
+  .chip:hover { background: var(--marker); }
+  .chip[aria-pressed="true"] { background: var(--teal); color: var(--paper); }
+  .chip:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+  /* ---------- nav ---------- */
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 4px;
+  }
+  .nav .spacer { flex: 1; }
+
+  .btn {
+    appearance: none;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 12px 26px;
+    border: 2px solid var(--ink);
+    background: var(--field);
+    color: var(--ink);
+    transition: transform 120ms ease, background 120ms ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .btn.primary { background: var(--teal); color: var(--paper); }
+  .btn.primary:hover { background: var(--ink); }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--ink-soft); padding-left: 4px; padding-right: 4px; }
+  .btn.ghost:hover { color: var(--ink); background: transparent; }
+  .btn[disabled] { opacity: 0.55; cursor: default; transform: none; }
+
+  /* ---------- done ---------- */
+
+  .done { display: flex; flex-direction: column; gap: 18px; }
+
+  .done h2 {
+    font-size: clamp(26px, 5vw, 34px);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+
+  .done p { color: var(--ink-soft); font-size: 16px; max-width: 48ch; }
+
+  #summary {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.65;
+    min-height: 220px;
+    max-height: 340px;
+    overflow-y: auto;
+    background: var(--field);
+    white-space: pre-wrap;
+  }
+
+  #fallback[hidden] { display: none; }
+  #fallback { display: flex; flex-direction: column; gap: 18px; }
+
+  .toast {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--teal);
+    min-height: 20px;
+  }
+
+  .foot {
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 520px) {
+    .card { padding: 36px 22px 26px; }
+    .tab { font-size: 13px; padding: 12px 4px 14px; }
+    .nav { flex-wrap: wrap; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <filter id="wobble-a">
+    <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="3" seed="7" result="n" />
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G" />
+  </filter>
+  <filter id="wobble-b">
+    <feTurbulence type="fractalNoise" baseFrequency="0.019" numOctaves="3" seed="21" result="n" />
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G" />
+  </filter>
+  <filter id="wobble-c">
+    <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="3" seed="42" result="n" />
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G" />
+  </filter>
+</svg>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">glowbeast &times; you</div>
+    <h1>Tell us what you <mark>actually</mark> think.</h1>
+    <p class="lede">A few quick questions, about four minutes.<br>Be as blunt as you like, and get free products!</p>
+  </header>
+
+  <div class="board">
+    <div class="tabs" role="tablist" aria-label="Survey sections">
+      <button class="tab" role="tab" id="tab-0" aria-controls="panel-0" aria-selected="true">Spray</button>
+      <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="false" tabindex="-1">Cleanser</button>
+      <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1">Last but not least</button>
+    </div>
+
+    <div class="card">
+
+      <!-- 1 -->
+      <section class="panel" role="tabpanel" id="panel-0" aria-labelledby="tab-0" tabindex="0">
+        <div class="step">Section 1 of 3</div>
+
+        <div class="q">
+          <div class="qlabel" id="q1a-label">What was your first impression of the spray?</div>
+          <div class="yesno" role="group" aria-labelledby="q1a-label">
+            <button type="button" class="chip" data-choice="q1a" data-value="Refreshing" aria-pressed="false">Refreshing</button>
+            <button type="button" class="chip" data-choice="q1a" data-value="Loved the scent" aria-pressed="false">Loved the scent</button>
+            <button type="button" class="chip" data-choice="q1a" data-value="Calming" aria-pressed="false">Calming</button>
+            <button type="button" class="chip" data-choice="q1a" data-value="Hydrating" aria-pressed="false">Hydrating</button>
+            <button type="button" class="chip" data-choice="q1a" data-value="Didn&rsquo;t really notice" aria-pressed="false">Didn&rsquo;t really notice</button>
+            <button type="button" class="chip" data-choice="q1a" data-value="Other" aria-pressed="false">Other</button>
+          </div>
+          <input type="text" id="q1b" data-key="q1b" class="follow" maxlength="200" placeholder="If other, tell us" autocomplete="off" aria-label="If other, tell us" />
+        </div>
+
+        <div class="q">
+          <div class="qlabel" id="q2a-label">How did your skin feel in the sauna after spraying?</div>
+          <div class="yesno" role="group" aria-labelledby="q2a-label">
+            <button type="button" class="chip" data-choice="q2a" data-value="Fresh &amp; dry" aria-pressed="false">Fresh &amp; dry</button>
+            <button type="button" class="chip" data-choice="q2a" data-value="Sticky" aria-pressed="false">Sticky</button>
+            <button type="button" class="chip" data-choice="q2a" data-value="Cool" aria-pressed="false">Cool</button>
+            <button type="button" class="chip" data-choice="q2a" data-value="Other" aria-pressed="false">Other</button>
+          </div>
+          <input type="text" id="q2b" data-key="q2b" class="follow" maxlength="200" placeholder="If other, tell us" autocomplete="off" aria-label="If other, tell us" />
+        </div>
+
+        <div class="q">
+          <div class="qlabel" id="q5a-label">Will you actually reach for these on your regular sauna sessions?</div>
+          <div class="yesno" role="group" aria-labelledby="q5a-label">
+            <button type="button" class="chip" data-choice="q5a" data-value="Every session" aria-pressed="false">Every session</button>
+            <button type="button" class="chip" data-choice="q5a" data-value="Once in a while" aria-pressed="false">Once in a while</button>
+            <button type="button" class="chip" data-choice="q5a" data-value="Probably not" aria-pressed="false">Probably not</button>
+          </div>
+        </div>
+
+        <div class="nav">
+          <div class="spacer"></div>
+          <button class="btn primary" data-go="1">Next</button>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="panel" role="tabpanel" id="panel-1" aria-labelledby="tab-1" tabindex="0" hidden>
+        <div class="step">Section 2 of 3</div>
+
+        <div class="q">
+          <div class="qlabel" id="c1a-label">What was your first impression of the cleanser?</div>
+          <div class="yesno" role="group" aria-labelledby="c1a-label">
+            <button type="button" class="chip" data-choice="c1a" data-value="Cleansing power" aria-pressed="false">Cleansing power</button>
+            <button type="button" class="chip" data-choice="c1a" data-value="Tightness" aria-pressed="false">Tightness</button>
+            <button type="button" class="chip" data-choice="c1a" data-value="Dryness" aria-pressed="false">Dryness</button>
+            <button type="button" class="chip" data-choice="c1a" data-value="Slippery finish" aria-pressed="false">Slippery finish</button>
+            <button type="button" class="chip" data-choice="c1a" data-value="The scent" aria-pressed="false">The scent</button>
+            <button type="button" class="chip" data-choice="c1a" data-value="Other" aria-pressed="false">Other</button>
+          </div>
+          <input type="text" id="c1b" data-key="c1b" class="follow" maxlength="200" placeholder="If other, tell us" autocomplete="off" aria-label="If other, tell us" />
+        </div>
+
+        <div class="q">
+          <div class="qlabel" id="c2a-label">How did your skin feel after cleansing?</div>
+          <div class="yesno" role="group" aria-labelledby="c2a-label">
+            <button type="button" class="chip" data-choice="c2a" data-value="Fresh &amp; soft" aria-pressed="false">Fresh &amp; soft</button>
+            <button type="button" class="chip" data-choice="c2a" data-value="Tight" aria-pressed="false">Tight</button>
+            <button type="button" class="chip" data-choice="c2a" data-value="Squeaky" aria-pressed="false">Squeaky</button>
+            <button type="button" class="chip" data-choice="c2a" data-value="Other" aria-pressed="false">Other</button>
+          </div>
+          <input type="text" id="c2b" data-key="c2b" class="follow" maxlength="200" placeholder="If other, tell us" autocomplete="off" aria-label="If other, tell us" />
+        </div>
+
+        <div class="q">
+          <div class="qlabel" id="c5a-label">Will you actually reach for this on your regular sauna sessions?</div>
+          <div class="yesno" role="group" aria-labelledby="c5a-label">
+            <button type="button" class="chip" data-choice="c5a" data-value="Every session" aria-pressed="false">Every session</button>
+            <button type="button" class="chip" data-choice="c5a" data-value="Once in a while" aria-pressed="false">Once in a while</button>
+            <button type="button" class="chip" data-choice="c5a" data-value="Probably not" aria-pressed="false">Probably not</button>
+          </div>
+        </div>
+
+        <div class="nav">
+          <button class="btn ghost" data-go="0">&larr; Back</button>
+          <div class="spacer"></div>
+          <button class="btn primary" data-go="2">Next</button>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section class="panel" role="tabpanel" id="panel-2" aria-labelledby="tab-2" tabindex="0" hidden>
+        <div class="step">Section 3 of 3</div>
+
+        <div class="q">
+          <label for="q6">What&rsquo;s the first word that comes to mind when you hear &ldquo;glowbeast&rdquo;?</label>
+          <div class="hint">First instinct. Don&rsquo;t edit it. A vibe or an aesthetic counts too &mdash; not just a feeling.</div>
+          <input type="text" id="q6" data-key="q6" class="oneword" maxlength="28" placeholder="One word" autocomplete="off" />
+        </div>
+
+        <div class="q">
+          <label for="q7">Which brands give off the same vibe/energy as glowbeast?</label>
+          <div class="hint">Any category &mdash; sports, fashion, food &amp; drink, beauty. Name two or three and tell us why, if you feel like it.</div>
+          <textarea id="q7" data-key="q7" placeholder="The ones that feel like they get it"></textarea>
+        </div>
+
+        <div class="q">
+          <div class="qlabel" id="q8a-label">Would you recommend us to a friend?</div>
+          <div class="yesno" role="group" aria-labelledby="q8a-label">
+            <button type="button" class="chip" data-choice="q8a" data-value="Yes, easily" aria-pressed="false">Yes, easily</button>
+            <button type="button" class="chip" data-choice="q8a" data-value="Yes, with a caveat" aria-pressed="false">Yes, with a caveat</button>
+            <button type="button" class="chip" data-choice="q8a" data-value="Not yet" aria-pressed="false">Not yet</button>
+          </div>
+        </div>
+
+        <div class="q">
+          <label for="q8b">Why, or why not?</label>
+          <div class="hint">This one&rsquo;s the most useful answer on the whole form.</div>
+          <textarea id="q8b" data-key="q8b" placeholder="This one&rsquo;s the most useful answer on the whole form"></textarea>
+        </div>
+
+        <div class="q">
+          <div class="qlabel" id="q9a-label">Want an invite to our next session?</div>
+          <div class="yesno" role="group" aria-labelledby="q9a-label">
+            <button type="button" class="chip" data-choice="q9a" data-value="Yes, keep me posted" aria-pressed="false">Yes, keep me posted</button>
+            <button type="button" class="chip" data-choice="q9a" data-value="Maybe" aria-pressed="false">Maybe</button>
+            <button type="button" class="chip" data-choice="q9a" data-value="I&rsquo;m good" aria-pressed="false">I&rsquo;m good</button>
+          </div>
+        </div>
+
+        <div class="q">
+          <label for="q9b">If yes, leave your Insta handle.<span class="opt">Optional</span></label>
+          <div class="hint">Leaving your handle means you&rsquo;re okay with us reaching out about upcoming events.</div>
+          <input type="text" id="q9b" data-key="q9b" class="oneword" maxlength="40" placeholder="@yourhandle" autocomplete="off" />
+        </div>
+
+        <div class="nav">
+          <button class="btn ghost" data-go="1">&larr; Back</button>
+          <div class="spacer"></div>
+          <button class="btn primary" id="finish">Send it</button>
+        </div>
+      </section>
+
+      <!-- done -->
+      <section class="panel done" id="panel-done" hidden>
+        <h2 id="done-title">That&rsquo;s it. Thank you, genuinely.</h2>
+        <p id="done-body">Your answers are in. We read every single one &mdash; the blunt ones twice.</p>
+
+        <div id="fallback" hidden>
+          <textarea id="summary" readonly aria-label="Your answers, ready to copy"></textarea>
+          <div class="nav">
+            <button class="btn primary" id="copy">Copy my answers</button>
+            <button class="btn ghost" id="back-edit">Edit an answer</button>
+            <div class="spacer"></div>
+          </div>
+        </div>
+
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </section>
+
+    </div>
+  </div>
+
+  <p class="foot" id="foot">Your answers stay in this browser until you send them.</p>
+</div>
+
+<script>
+(function () {
+  var STORE = "othership-survey-v1";
+  var ENDPOINT = (window.OTHERSHIP_ENDPOINT || "").trim();
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  var panels = [0, 1, 2].map(function (i) { return document.getElementById("panel-" + i); });
+  var donePanel = document.getElementById("panel-done");
+  var fields = Array.prototype.slice.call(document.querySelectorAll("[data-key]"));
+  var chips = Array.prototype.slice.call(document.querySelectorAll("[data-choice]"));
+
+  var QUESTIONS = [
+    { section: "Spray", items: [
+      ["q1a", "First impression of the spray"],
+      ["q1b", "Spray first impression — other"],
+      ["q2a", "How did your skin feel in the sauna?"],
+      ["q2b", "Spray skin feel — other"],
+      ["q5a", "Will you reach for the spray on regular sauna sessions?"]
+    ]},
+    { section: "Cleanser", items: [
+      ["c1a", "First impression of the cleanser"],
+      ["c1b", "Cleanser first impression — other"],
+      ["c2a", "How did your skin feel after cleansing?"],
+      ["c2b", "Cleanser skin feel — other"],
+      ["c5a", "Will you reach for the cleanser on regular sauna sessions?"]
+    ]},
+    { section: "Last but not least", items: [
+      ["q6", "First word that comes to mind for “glowbeast”"],
+      ["q7", "Brands with the same vibe/energy as glowbeast"],
+      ["q8a", "Would you recommend us to a friend?"],
+      ["q8b", "Why, or why not?"],
+      ["q9a", "Want an invite to our next session?"],
+      ["q9b", "Insta handle"]
+    ]}
+  ];
+
+  // 배열(다중선택)도 문자열도 안전하게 텍스트로.
+  function textOf(key) {
+    var v = answers[key];
+    if (Array.isArray(v)) return v.join(", ");
+    return v === undefined || v === null ? "" : String(v);
+  }
+
+  var answers = {};
+  try { answers = JSON.parse(localStorage.getItem(STORE) || "{}") || {}; } catch (e) { answers = {}; }
+
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify(answers)); } catch (e) {}
+  }
+
+  function grow(el) {
+    if (el.tagName !== "TEXTAREA" || el.id === "summary") return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }
+
+  fields.forEach(function (el) {
+    var key = el.getAttribute("data-key");
+    if (answers[key]) el.value = answers[key];
+    grow(el);
+    el.addEventListener("input", function () {
+      answers[key] = el.value;
+      grow(el);
+      save();
+    });
+  });
+
+  chips.forEach(function (chip) {
+    var key = chip.getAttribute("data-choice");
+    var val = chip.getAttribute("data-value");
+    var multi = chip.getAttribute("data-multi") === "true";
+
+    if (multi) {
+      if (Array.isArray(answers[key]) && answers[key].indexOf(val) !== -1) {
+        chip.setAttribute("aria-pressed", "true");
+      }
+    } else if (answers[key] === val) {
+      chip.setAttribute("aria-pressed", "true");
+    }
+
+    chip.addEventListener("click", function () {
+      if (multi) {
+        // 중복 선택: 토글해서 배열에 쌓는다.
+        var list = Array.isArray(answers[key]) ? answers[key].slice() : [];
+        var at = list.indexOf(val);
+        if (at === -1) {
+          list.push(val);
+          chip.setAttribute("aria-pressed", "true");
+        } else {
+          list.splice(at, 1);
+          chip.setAttribute("aria-pressed", "false");
+        }
+        if (list.length) { answers[key] = list; } else { delete answers[key]; }
+      } else {
+        // 단일 선택: 같은 key의 다른 칩은 해제.
+        var already = answers[key] === val;
+        chips.forEach(function (c) {
+          if (c.getAttribute("data-choice") === key) c.setAttribute("aria-pressed", "false");
+        });
+        if (already) { delete answers[key]; }
+        else { answers[key] = val; chip.setAttribute("aria-pressed", "true"); }
+      }
+      save();
+    });
+  });
+
+  function show(index) {
+    donePanel.hidden = true;
+    panels.forEach(function (p, i) { p.hidden = i !== index; });
+    tabs.forEach(function (t, i) {
+      t.setAttribute("aria-selected", i === index ? "true" : "false");
+      t.tabIndex = i === index ? 0 : -1;
+    });
+    panels[index].querySelectorAll("textarea").forEach(grow);
+    document.querySelector(".board").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener("click", function () { show(i); });
+    tab.addEventListener("keydown", function (e) {
+      var next = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : null;
+      if (next === null) return;
+      e.preventDefault();
+      next = (next + tabs.length) % tabs.length;
+      show(next);
+      tabs[next].focus();
+    });
+  });
+
+  document.querySelectorAll("[data-go]").forEach(function (btn) {
+    btn.addEventListener("click", function () { show(parseInt(btn.getAttribute("data-go"), 10)); });
+  });
+
+  function buildSummary() {
+    var lines = ["glowbeast sauna survey", ""];
+    QUESTIONS.forEach(function (group) {
+      var rows = group.items.filter(function (it) {
+        return textOf(it[0]).trim() !== "";
+      });
+      if (!rows.length) return;
+      lines.push(group.section.toUpperCase());
+      rows.forEach(function (it) {
+        lines.push(it[1]);
+        lines.push("→ " + textOf(it[0]).trim());
+        lines.push("");
+      });
+    });
+    if (lines.length <= 2) lines.push("(no answers filled in yet)");
+    return lines.join("\n").trim();
+  }
+
+  var summary = document.getElementById("summary");
+  var toast = document.getElementById("toast");
+  var fallback = document.getElementById("fallback");
+  var doneTitle = document.getElementById("done-title");
+  var doneBody = document.getElementById("done-body");
+  var foot = document.getElementById("foot");
+  var finishBtn = document.getElementById("finish");
+
+  function showDone(sent) {
+    if (sent) {
+      doneTitle.textContent = "That’s it. Thank you, genuinely.";
+      doneBody.textContent = "Your answers are in. We read every single one — the blunt ones twice.";
+      fallback.hidden = true;
+      foot.textContent = "Sent. You can close this tab.";
+    } else {
+      doneTitle.textContent = "Almost — one manual step.";
+      doneBody.textContent = "We couldn’t reach the server just now. Copy your answers below and paste them straight back into the DM — nothing is lost.";
+      summary.value = buildSummary();
+      fallback.hidden = false;
+      foot.textContent = "Your answers stay in this browser until you copy them over.";
+    }
+    panels.forEach(function (p) { p.hidden = true; });
+    donePanel.hidden = false;
+    tabs.forEach(function (t) { t.setAttribute("aria-selected", "false"); });
+    toast.textContent = "";
+    document.querySelector(".board").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function payload() {
+    var out = { submittedAt: new Date().toISOString(), userAgent: navigator.userAgent };
+    QUESTIONS.forEach(function (group) {
+      group.items.forEach(function (it) {
+        out[it[0]] = textOf(it[0]).trim();
+      });
+    });
+    return out;
+  }
+
+  // Apps Script 웹 앱은 text/plain 본문이면 CORS preflight 없이 받습니다.
+  function send() {
+    var body = JSON.stringify(payload());
+    var opts = {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: body
+    };
+    return fetch(ENDPOINT, opts)
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return true;
+      })
+      .catch(function () {
+        // 리다이렉트/CORS로 응답을 못 읽는 경우가 있어 no-cors로 한 번 더 시도.
+        return fetch(ENDPOINT, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: body
+        }).then(function () { return true; });
+      });
+  }
+
+  finishBtn.addEventListener("click", function () {
+    if (!ENDPOINT) { showDone(false); return; }
+
+    finishBtn.disabled = true;
+    finishBtn.textContent = "Sending…";
+
+    send()
+      .then(function () {
+        try { localStorage.removeItem(STORE); } catch (e) {}
+        showDone(true);
+      })
+      .catch(function () {
+        showDone(false);
+      })
+      .then(function () {
+        finishBtn.disabled = false;
+        finishBtn.textContent = "Send it";
+      });
+  });
+
+  document.getElementById("back-edit").addEventListener("click", function () { show(0); });
+
+  document.getElementById("copy").addEventListener("click", function () {
+    function fallbackCopy() {
+      summary.focus();
+      summary.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
+      toast.textContent = ok
+        ? "Copied. Paste it into the DM and you’re done."
+        : "Couldn’t copy automatically — the text is selected, hit Cmd/Ctrl+C.";
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(summary.value).then(function () {
+        toast.textContent = "Copied. Paste it into the DM and you’re done.";
+      }, fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
