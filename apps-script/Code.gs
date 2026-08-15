@@ -9,26 +9,36 @@
 
 var SHEET_NAME = 'responses';
 
-// 열 순서 = 설문 문항 순서. 폼의 data-key 와 정확히 일치해야 합니다.
+// 'sauna events' 열에 자동으로 채워 넣을 값. 행사가 바뀌면 여기만 바꾸세요.
+// 비워두면(''), 원본 러닝 설문처럼 나중에 손으로 태깅하는 열이 됩니다.
+var EVENT_TAG = 'othership';
+
+// 열 순서 = 설문 문항 순서. 첫 항목은 폼의 data-key(없으면 null), 둘째는 시트 헤더.
+// 헤더 표기는 기존 러닝 설문 응답 시트와 같은 스네이크케이스 키 형식을 따릅니다.
 var COLUMNS = [
-  ['submittedAt', 'Submitted at'],
-  ['q1a', 'Spray — first impression'],
-  ['q1b', 'Spray — first impression (other)'],
-  ['q2a', 'Spray — skin feel in sauna'],
-  ['q2b', 'Spray — skin feel (other)'],
-  ['q5a', 'Spray — reach for it regularly?'],
-  ['c1a', 'Cleanser — first impression'],
-  ['c1b', 'Cleanser — first impression (other)'],
-  ['c2a', 'Cleanser — skin feel after cleansing'],
-  ['c2b', 'Cleanser — skin feel (other)'],
-  ['c5a', 'Cleanser — reach for it regularly?'],
-  ['q6', 'First word for "glowbeast"'],
-  ['q7', 'Brands with same vibe'],
-  ['q8a', 'Recommend to a friend?'],
-  ['q8b', 'Why, or why not?'],
-  ['q9a', 'Want an invite to next session?'],
-  ['q9b', 'Insta handle'],
-  ['userAgent', 'User agent']
+  ['submittedAt', 'submittedAt'],
+  [null,          'sauna events'],
+
+  ['q1a', 'q1a_spray_first_impression'],
+  ['q1b', 'q1b_spray_first_impr_other'],
+  ['q2a', 'q2a_spray_skin_feel'],
+  ['q2b', 'q2b_spray_skin_feel_other'],
+  ['q5a', 'q5a_spray_regular_sessions'],
+
+  ['c1a', 'c1a_cleanser_first_impression'],
+  ['c1b', 'c1b_cleanser_first_impr_other'],
+  ['c2a', 'c2a_cleanser_skin_feel'],
+  ['c2b', 'c2b_cleanser_skin_feel_other'],
+  ['c5a', 'c5a_cleanser_regular_sessions'],
+
+  ['q6',  'q6_first_word'],
+  ['q7',  'q7_similar_brands'],
+  ['q8a', 'q8a_recommend'],
+  ['q8b', 'q8b_recommend_why'],
+  ['q9a', 'q9a_next_session_invite'],
+  ['q9b', 'q9b_insta_handle'],
+
+  ['userAgent', 'userAgent']
 ];
 
 /**
@@ -70,12 +80,15 @@ function doPost(e) {
 
     var row = COLUMNS.map(function (c) {
       var key = c[0];
+
+      // 폼에서 안 오는 열(행사 태그)은 상수로 채웁니다.
+      if (key === null) return EVENT_TAG;
+
       var v = data[key];
 
+      // submittedAt 은 기존 시트와 똑같이 ISO 문자열 그대로 둡니다.
       if (key === 'submittedAt') {
-        // ISO 문자열을 시트에서 읽기 좋은 날짜값으로.
-        var d = v ? new Date(v) : new Date();
-        return isNaN(d.getTime()) ? new Date() : d;
+        return v ? String(v) : new Date().toISOString();
       }
       if (Array.isArray(v)) return v.join(', ');
       return v === undefined || v === null ? '' : String(v);
