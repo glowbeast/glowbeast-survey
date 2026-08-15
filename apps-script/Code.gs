@@ -7,6 +7,11 @@
  * 시트에 바인딩된(container-bound) 스크립트라서 시트 ID를 따로 적을 필요가 없습니다.
  */
 
+// 응답이 쌓일 스프레드시트 ID.
+// https://docs.google.com/spreadsheets/d/★이부분★/edit
+// 비워두면 이 스크립트가 붙어 있는 시트를 사용합니다.
+var SPREADSHEET_ID = '1W1hzXZn8-q-MXDK3sPQbPsaYIedVEbBdhBRDBTKelo0';
+
 var SHEET_NAME = 'responses';
 
 // 'sauna events' 열에 자동으로 채워 넣을 값. 행사가 바뀌면 여기만 바꾸세요.
@@ -45,7 +50,9 @@ var COLUMNS = [
  * 시트를 가져오고, 없으면 만들고, 헤더가 없으면 첫 줄에 헤더를 깝니다.
  */
 function getSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SPREADSHEET_ID
+    ? SpreadsheetApp.openById(SPREADSHEET_ID)
+    : SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(SHEET_NAME);
 
   if (!sheet) {
