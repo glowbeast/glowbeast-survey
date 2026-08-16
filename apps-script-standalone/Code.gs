@@ -19,29 +19,27 @@ var SHEET_NAME = 'responses';
 var EVENT_TAG = 'othership';
 
 // 열 순서 = 설문 문항 순서. 첫 항목은 폼의 data-key(없으면 null), 둘째는 시트 1행 헤더.
-// 헤더는 어떤 질문의 답인지 한눈에 보이도록 문항을 짧게 줄인 문구를 씁니다.
+// 헤더는 "문항키 — 실제 질문" 형태라서, 어느 답이 어느 질문의 답인지 1행만 봐도 구분됩니다.
 var COLUMNS = [
   ['submittedAt', 'Submitted at'],
   [null,          'Sauna event'],
 
-  ['q1a', 'Spray — first impression'],
-  ['q1b', 'Spray — first impression (other)'],
-  ['q2a', 'Spray — how skin felt in the sauna'],
-  ['q2b', 'Spray — how skin felt (other)'],
-  ['q5a', 'Spray — use on regular sessions?'],
+  ['q1a', 'q1a — What was your first impression of the spray?'],
+  ['q1b', 'q1b — First impression of the spray (other)'],
+  ['q2a', 'q2a — How did your skin feel in the sauna after spraying?'],
+  ['q2b', 'q2b — Skin feel after spraying (other)'],
+  ['q5a', 'q5a — Will you reach for the spray on regular sauna sessions?'],
 
-  ['c1a', 'Cleanser — first impression'],
-  ['c1b', 'Cleanser — first impression (other)'],
-  ['c2a', 'Cleanser — how skin felt after cleansing'],
-  ['c2b', 'Cleanser — how skin felt (other)'],
-  ['c5a', 'Cleanser — use on regular sessions?'],
+  ['c1a', 'c1a — What was your first impression of the cleanser?'],
+  ['c1b', 'c1b — First impression of the cleanser (other)'],
+  ['c2a', 'c2a — How did your skin feel after cleansing?'],
+  ['c2b', 'c2b — Skin feel after cleansing (other)'],
+  ['c5a', 'c5a — Will you reach for the cleanser on regular sauna sessions?'],
 
-  ['q6',  'First word for “glowbeast”'],
-  ['q7',  'Brands with the same vibe'],
-  ['q8a', 'Recommend to a friend?'],
-  ['q8b', 'Why, or why not?'],
-  ['q9a', 'Invite to the next session?'],
-  ['q9b', 'Insta handle'],
+  ['q6',  'q6 — First word that comes to mind for “glowbeast”'],
+  ['q7',  'q7 — Which brands give off the same vibe/energy?'],
+  ['q8a', 'q8a — Would you recommend us to a friend?'],
+  ['q8b', 'q8b — Why, or why not?'],
 
   ['userAgent', 'Device / browser']
 ];
@@ -73,6 +71,12 @@ function ensureHeaders_(sheet) {
 
   if (sheet.getMaxColumns() < width) {
     sheet.insertColumnsAfter(sheet.getMaxColumns(), width - sheet.getMaxColumns());
+  }
+
+  // 문항이 줄어든 경우, 예전 헤더가 오른쪽에 남지 않도록 지웁니다.
+  var extra = sheet.getMaxColumns() - width;
+  if (extra > 0) {
+    sheet.getRange(1, width + 1, 1, extra).clearContent().clearFormat();
   }
 
   var range = sheet.getRange(1, 1, 1, width);

@@ -18,36 +18,34 @@ var SHEET_NAME = 'responses';
 // 비워두면(''), 원본 러닝 설문처럼 나중에 손으로 태깅하는 열이 됩니다.
 var EVENT_TAG = 'othership';
 
-// 열 순서 = 설문 문항 순서. 첫 항목은 폼의 data-key(없으면 null), 둘째는 시트 헤더.
-// 헤더 표기는 기존 러닝 설문 응답 시트와 같은 스네이크케이스 키 형식을 따릅니다.
+// 열 순서 = 설문 문항 순서. 첫 항목은 폼의 data-key(없으면 null), 둘째는 시트 1행 헤더.
+// 헤더는 "문항키 — 실제 질문" 형태라서, 어느 답이 어느 질문의 답인지 1행만 봐도 구분됩니다.
 var COLUMNS = [
-  ['submittedAt', 'submittedAt'],
-  [null,          'sauna events'],
+  ['submittedAt', 'Submitted at'],
+  [null,          'Sauna event'],
 
-  ['q1a', 'q1a_spray_first_impression'],
-  ['q1b', 'q1b_spray_first_impr_other'],
-  ['q2a', 'q2a_spray_skin_feel'],
-  ['q2b', 'q2b_spray_skin_feel_other'],
-  ['q5a', 'q5a_spray_regular_sessions'],
+  ['q1a', 'q1a — What was your first impression of the spray?'],
+  ['q1b', 'q1b — First impression of the spray (other)'],
+  ['q2a', 'q2a — How did your skin feel in the sauna after spraying?'],
+  ['q2b', 'q2b — Skin feel after spraying (other)'],
+  ['q5a', 'q5a — Will you reach for the spray on regular sauna sessions?'],
 
-  ['c1a', 'c1a_cleanser_first_impression'],
-  ['c1b', 'c1b_cleanser_first_impr_other'],
-  ['c2a', 'c2a_cleanser_skin_feel'],
-  ['c2b', 'c2b_cleanser_skin_feel_other'],
-  ['c5a', 'c5a_cleanser_regular_sessions'],
+  ['c1a', 'c1a — What was your first impression of the cleanser?'],
+  ['c1b', 'c1b — First impression of the cleanser (other)'],
+  ['c2a', 'c2a — How did your skin feel after cleansing?'],
+  ['c2b', 'c2b — Skin feel after cleansing (other)'],
+  ['c5a', 'c5a — Will you reach for the cleanser on regular sauna sessions?'],
 
-  ['q6',  'q6_first_word'],
-  ['q7',  'q7_similar_brands'],
-  ['q8a', 'q8a_recommend'],
-  ['q8b', 'q8b_recommend_why'],
-  ['q9a', 'q9a_next_session_invite'],
-  ['q9b', 'q9b_insta_handle'],
+  ['q6',  'q6 — First word that comes to mind for “glowbeast”'],
+  ['q7',  'q7 — Which brands give off the same vibe/energy?'],
+  ['q8a', 'q8a — Would you recommend us to a friend?'],
+  ['q8b', 'q8b — Why, or why not?'],
 
-  ['userAgent', 'userAgent']
+  ['userAgent', 'Device / browser']
 ];
 
 /**
- * 시트를 가져오고, 없으면 만들고, 헤더가 없으면 첫 줄에 헤더를 깝니다.
+ * 시트를 가져오고, 없으면 만들고, 1행 헤더를 항상 최신 문구로 맞춥니다.
  */
 function getSheet_() {
   var ss = SPREADSHEET_ID
@@ -59,14 +57,36 @@ function getSheet_() {
     sheet = ss.insertSheet(SHEET_NAME);
   }
 
-  if (sheet.getLastRow() === 0) {
-    var headers = COLUMNS.map(function (c) { return c[1]; });
-    sheet.appendRow(headers);
-    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-    sheet.setFrozenRows(1);
+  ensureHeaders_(sheet);
+  return sheet;
+}
+
+/**
+ * 1행을 COLUMNS 의 문구로 맞춰 둡니다.
+ * 빈 시트면 헤더를 깔고, 문구가 바뀌었으면 1행만 덮어씁니다. 아래 응답 줄은 건드리지 않습니다.
+ */
+function ensureHeaders_(sheet) {
+  var headers = COLUMNS.map(function (c) { return c[1]; });
+  var width = headers.length;
+
+  if (sheet.getMaxColumns() < width) {
+    sheet.insertColumnsAfter(sheet.getMaxColumns(), width - sheet.getMaxColumns());
   }
 
-  return sheet;
+  // 문항이 줄어든 경우, 예전 헤더가 오른쪽에 남지 않도록 지웁니다.
+  var extra = sheet.getMaxColumns() - width;
+  if (extra > 0) {
+    sheet.getRange(1, width + 1, 1, extra).clearContent().clearFormat();
+  }
+
+  var range = sheet.getRange(1, 1, 1, width);
+  var current = range.getValues()[0];
+  var same = headers.every(function (h, i) { return String(current[i]) === h; });
+  if (same) return;
+
+  range.setValues([headers]);
+  range.setFontWeight('bold').setBackground('#ffff00').setVerticalAlignment('middle');
+  sheet.setFrozenRows(1);
 }
 
 /**
@@ -115,6 +135,12 @@ function doPost(e) {
  * 배포가 살아있는지 브라우저에서 바로 확인하는 용도.
  */
 function doGet() {
+  // 방문할 때마다 1행 헤더가 최신 문구인지 맞춰 둡니다(같으면 아무것도 하지 않음).
+  try {
+    getSheet_();
+  } catch (err) {
+    return json_({ ok: false, message: 'sheet not reachable', error: String(err) });
+  }
   return json_({ ok: true, message: 'glowbeast survey collector is live' });
 }
 
